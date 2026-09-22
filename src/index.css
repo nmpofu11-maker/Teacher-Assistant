@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --paper: #F6F5F0;
+    --paper-raised: #FFFFFF;
+    --ink: #1B2430;
+    --ink-soft: #4A5568;
+    --line: #DCDCD3;
+    --line-soft: #ECEAE1;
+    --tech: #2F6F63;
+    --tech-soft: #E6EFEA;
+    --tech-ink: #1D453D;
+    --mlit: #35507C;
+    --mlit-soft: #E8EEF5;
+    --mlit-ink: #233A5C;
+    --amber: #B4791E;
+    --amber-soft: #F7EEDB;
+    --red: #A6402F;
+    --red-soft: #F7E5E2;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    --paper: #181C21;
+    --paper-raised: #21262D;
+    --ink: #EDEEE7;
+    --ink-soft: #A2A7B0;
+    --line: #323842;
+    --line-soft: #272C35;
+    --tech: #5EBAA4;
+    --tech-soft: #1A312B;
+    --tech-ink: #8FE2CF;
+    --mlit: #87AADE;
+    --mlit-soft: #1B2A40;
+    --mlit-ink: #BDD7FA;
+    --amber: #D9A24B;
+    --amber-soft: #382C18;
+    --red: #D98B7C;
+    --red-soft: #38201B;
+    background-color: #181C21;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1B2430;
+    background-color: #F6F5F0;
+  }
+
+  html.dark body {
+    color: #EDEEE7;
+    background-color: #181C21;
+    background-image: none;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+
+  .font-mono, code, pre {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+}
+
+/* Custom scrollbars for clean studio desk aesthetics */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D5D4CB;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #363D47;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B6B5AC;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4A5260;
+}

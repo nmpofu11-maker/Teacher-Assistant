@@ -1,0 +1,6 @@
+{
+  "name": "The AI Teaching Assistant",
+  "description": "Multi-grade AI teaching assistant managing Technology (Gr 8A, 8B, 9A, 9B) and Maths Literacy (Gr 10, 11, 12) with termly assessment files, CAPS Mini-PATs, IEB SAG 2025/2026 SBA portfolio management, educator timeline bars, inline pre- and post-moderation forms with statutory acceptable windows, automatic 45-min slide decks, worksheets, and Word exports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
