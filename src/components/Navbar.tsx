@@ -75,6 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'planner', label: '45-Min Lesson Planner', icon: BookOpen },
     { id: 'slides', label: 'Slide Decks (.pptx)', icon: Presentation },
     { id: 'worksheets', label: 'Worksheets & Memos', icon: FileCheck },
+    { id: 'marksheet', label: 'Marksheets & Records', icon: FileSpreadsheet },
     { id: 'assessment', label: 'Assessments & SBA Hub', icon: ClipboardCheck },
     { id: 'ieb', label: 'IEB Resource Library', icon: Award },
     { id: 'atp', label: 'CAPS ATP Explorer', icon: FileSpreadsheet },

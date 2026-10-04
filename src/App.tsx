@@ -27,8 +27,11 @@ import { ExcelSyncModal } from './components/ExcelSyncModal';
 import { LearningModelsHub } from './components/LearningModelsHub';
 import { CalendarAlignmentModal } from './components/CalendarAlignmentModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { MarksheetHub } from './components/MarksheetHub';
 import { IEBResource } from './types';
+import { Marksheet, MarkEntry } from './types/marks';
 import { detectAcademicPeriod, getAcademicWeekInfo } from './data/calendarData';
+import { ALL_ASSESSMENTS } from './data/assessmentData';
 
 import { 
   CheckCircle2, 
@@ -53,6 +56,49 @@ export default function App() {
   const [timetableSlots, setTimetableSlots] = useState<TimetableSlot[]>(MASTER_TIMETABLE_SLOTS);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState<boolean>(false);
+  const [marksheetData, setMarksheetData] = useState<Marksheet[]>(() => {
+    const saved = localStorage.getItem('teacher_assistant_marksheets');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('teacher_assistant_marksheets', JSON.stringify(marksheetData));
+  }, [marksheetData]);
+
+  // Function to handle saving marks
+  const handleSaveMarks = (taskId: string, entries: MarkEntry[]) => {
+    const task = ALL_ASSESSMENTS.find(t => t.id === taskId);
+    if (!task) return;
+
+    setMarksheetData(prev => {
+      const existingSheetIdx = prev.findIndex(s => s.taskId === taskId);
+      const newSheets = [...prev];
+
+      if (existingSheetIdx >= 0) {
+        newSheets[existingSheetIdx] = {
+          ...prev[existingSheetIdx],
+          entries
+        };
+      } else {
+        newSheets.push({
+          id: `sheet-${taskId}-${Date.now()}`,
+          classId: task.gradeClass,
+          subject: task.subject,
+          term: task.term,
+          taskId: taskId,
+          entries
+        });
+      }
+      return newSheets;
+    });
+
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#10b981', '#3b82f6', '#f59e0b']
+    });
+  };
   const [chatInitialPrompt, setChatInitialPrompt] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' } | null>(null);
 
@@ -413,6 +459,16 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'marksheet' && (
+          <MarksheetHub
+            selectedClassFilter={selectedClassFilter}
+            setSelectedClassFilter={setSelectedClassFilter}
+            marksheetData={marksheetData}
+            setMarksheetData={setMarksheetData}
+            onSaveMarks={handleSaveMarks}
+          />
+        )}
+
         {activeTab === 'assessment' && (
           <AssessmentHub
             currentTerm={selectedTerm}
@@ -427,6 +483,10 @@ export default function App() {
               setSelectedWeek(w);
               setActiveTab('planner');
             }}
+            onNavigateToMarksheet={(taskId) => {
+              setActiveTab('marksheet');
+            }}
+            marksheetData={marksheetData}
           />
         )}
 

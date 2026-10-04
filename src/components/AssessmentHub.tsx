@@ -27,7 +27,9 @@ import {
   Check
 } from 'lucide-react';
 import { AssessmentTask, GradeClass, Subject, PreModerationForm, PostModerationForm } from '../types';
+import { Marksheet } from '../types/marks';
 import { ALL_ASSESSMENTS, IEB_APPENDICES } from '../data/assessmentData';
+import { MARKSHEET_CONFIGURATIONS } from '../data/marksheetConfigurations';
 import { CLASSES_CONFIG } from '../data/atpData';
 import { exportAssessmentTaskToDocx, exportIEBModerationPortfolioToDocx } from '../utils/docxGenerator';
 import { 
@@ -46,12 +48,16 @@ interface AssessmentHubProps {
   currentWeek: number;
   onAskAIChat: (prompt: string) => void;
   onNavigateToPlanner?: (classId: GradeClass, term: number, week: number) => void;
+  onNavigateToMarksheet?: (taskId: string) => void;
+  marksheetData?: Marksheet[];
 }
 
 export const AssessmentHub: React.FC<AssessmentHubProps> = ({
   currentTerm,
   currentWeek,
   onAskAIChat,
+  onNavigateToMarksheet,
+  marksheetData = [],
 }) => {
   // State for subject/grade selection and term filtering
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<'ALL' | 'TECH8' | 'TECH9' | 'MLIT10' | 'MLIT11' | 'MLIT12'>('MLIT12');
@@ -544,6 +550,18 @@ export const AssessmentHub: React.FC<AssessmentHubProps> = ({
                         <span>Pre-Mod: {getPreModerationFormForTask(task).status === 'APPROVED' ? 'Approved' : 'In Review'}</span>
                       </button>
 
+                      {marksheetData.find(s => s.taskId === task.id) ? (
+                        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>Marks Entered</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-slate-400 font-medium italic">
+                          <Clock className="w-3 h-3" />
+                          <span>Pending Marks</span>
+                        </div>
+                      )}
+
                       <button
                         onClick={() => handleOpenPostModeration(task)}
                         className={`px-2 py-0.5 rounded-lg border font-semibold flex items-center gap-1 transition-all cursor-pointer ${
@@ -589,6 +607,15 @@ export const AssessmentHub: React.FC<AssessmentHubProps> = ({
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
+                {onNavigateToMarksheet && (
+                  <button
+                    onClick={() => onNavigateToMarksheet(currentTask.id)}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all cursor-pointer"
+                  >
+                    <FileSpreadsheet className="w-4 h-4" />
+                    <span>Enter Marks</span>
+                  </button>
+                )}
                 <button
                   id="export-task-docx-btn"
                   onClick={() => handleDownloadTaskDocx(currentTask)}

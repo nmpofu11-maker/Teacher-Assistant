@@ -52,6 +52,7 @@ export const ALL_ASSESSMENTS: AssessmentTask[] = [
   {
     id: 'tech8-t1-casestudy',
     code: 'TECH8-T1-CS1',
+    marksheetConfigId: 'TECH-GR8',
     grade: 8,
     gradeClass: '8A',
     subject: 'Technology',
@@ -156,6 +157,7 @@ export const ALL_ASSESSMENTS: AssessmentTask[] = [
   {
     id: 'tech8-t1-test',
     code: 'TECH8-T1-TEST',
+    marksheetConfigId: 'TECH-GR8',
     grade: 8,
     gradeClass: '8B',
     subject: 'Technology',
@@ -346,6 +348,7 @@ export const ALL_ASSESSMENTS: AssessmentTask[] = [
   {
     id: 'tech9-t1-test',
     code: 'TECH9-T1-A1',
+    marksheetConfigId: 'TECH-GR9',
     grade: 9,
     gradeClass: '9A',
     subject: 'Technology',
@@ -522,6 +525,7 @@ export const ALL_ASSESSMENTS: AssessmentTask[] = [
   {
     id: 'mlit10-t1-investigation',
     code: 'MLIT10-T1-INV1',
+    marksheetConfigId: 'MLIT-GR10',
     grade: 10,
     gradeClass: '10',
     subject: 'Mathematical Literacy',
@@ -691,6 +695,7 @@ export const ALL_ASSESSMENTS: AssessmentTask[] = [
   {
     id: 'mlit11-t1-investigation',
     code: 'MLIT11-T1-INV1',
+    marksheetConfigId: 'MLIT-GR11',
     grade: 11,
     gradeClass: '11',
     subject: 'Mathematical Literacy',

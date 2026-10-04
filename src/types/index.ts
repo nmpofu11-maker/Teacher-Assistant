@@ -343,6 +343,7 @@ export interface AssessmentTask {
   iebAppendicesRequired?: ('Appendix A' | 'Appendix B' | 'Appendix C' | 'Appendix D' | 'Appendix E' | 'Appendix F' | 'Appendix G')[];
   aiAssistancePrompts: string[];
   isCompleted?: boolean;
+  marksheetConfigId?: string; // Reference to MARKSHEET_CONFIGURATIONS key
 }
 
 export interface IEBAppendixDoc {

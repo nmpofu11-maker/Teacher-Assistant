@@ -30,26 +30,16 @@ function getAiClient(): GoogleGenAI {
 // AI Chat and Lesson / Slide / Assessment generation endpoint
 app.post('/api/gemini/generate', async (req, res) => {
   try {
-    const { prompt, systemInstruction, model = 'gemini-2.5-flash', jsonMode = false } = req.body;
+    const { prompt, systemInstruction, model = 'gemini-3.8-flash', jsonMode = false } = req.body;
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
     const ai = getAiClient();
-    const config: any = {
-      model: model,
-    };
-
-    if (systemInstruction) {
-      config.systemInstruction = systemInstruction;
-    }
-
-    if (jsonMode) {
-      config.responseMimeType = 'application/json';
-    }
+    const targetModel = model && model !== 'gemini-2.5-flash' ? model : 'gemini-3.8-flash';
 
     const response = await ai.models.generateContent({
-      model: model,
+      model: targetModel,
       contents: prompt,
       config: {
         systemInstruction: systemInstruction || undefined,

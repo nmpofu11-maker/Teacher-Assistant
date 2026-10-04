@@ -51,6 +51,79 @@ export const LessonPlanner: React.FC<LessonPlannerProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isAiRefining, setIsAiRefining] = useState(false);
   const [customNotes, setCustomNotes] = useState('');
+  const [firstTopicInput, setFirstTopicInput] = useState('');
+  const [isGeneratingWeekly, setIsGeneratingWeekly] = useState(false);
+  const [weeklyPlanResult, setWeeklyPlanResult] = useState<{
+    weeklyOverview: string;
+    days: Record<string, { title: string; objective: string; activities: string; cognitiveLevel: string }>;
+    nextWeekSuggestion: { firstLessonTopic: string; rationale: string };
+  } | null>(null);
+  const [weeklyError, setWeeklyError] = useState<string | null>(null);
+
+  const handleGenerateWeeklySequence = async () => {
+    const topicToUse = firstTopicInput.trim() || currentATP.capsTopic;
+    if (!topicToUse) return;
+    setIsGeneratingWeekly(true);
+    setWeeklyError(null);
+    try {
+      const prompt = `You are an expert CAPS and IEB curriculum specialist and senior South African educator. 
+The teacher is planning for Grade ${classInfo.grade} ${classInfo.subject} (Term ${selectedTerm}, Week ${selectedWeek}).
+The teacher has inputted the first topic for the week as: "${topicToUse}".
+Please automatically plan the complete lesson sequence for the 5 school days of the week (Monday, Tuesday, Wednesday, Thursday, Friday) adhering to Annual Pedagogical Alignment (APA) and Annual Teaching Plan (ATP) guidelines. Each lesson must be structured for a 45-minute period with rigorous CAPS & IEB cognitive progression (Levels 1 to 4).
+Additionally, provide a strategic suggestion and topic description for the FIRST LESSON of NEXT WEEK (Week ${selectedWeek + 1}).
+
+Return ONLY valid JSON with this exact structure:
+{
+  "weeklyOverview": "A brief 2-sentence summary of the weekly pedagogical goal and curriculum focus.",
+  "days": {
+    "Monday": { "title": "...", "objective": "...", "activities": "...", "cognitiveLevel": "Level 1: Knowing" },
+    "Tuesday": { "title": "...", "objective": "...", "activities": "...", "cognitiveLevel": "Level 2: Routine Procedure" },
+    "Wednesday": { "title": "...", "objective": "...", "activities": "...", "cognitiveLevel": "Level 2/3: Complex Application" },
+    "Thursday": { "title": "...", "objective": "...", "activities": "...", "cognitiveLevel": "Level 3: Problem Solving" },
+    "Friday": { "title": "...", "objective": "...", "activities": "...", "cognitiveLevel": "Level 4: Critical Evaluation & Exit Check" }
+  },
+  "nextWeekSuggestion": {
+    "firstLessonTopic": "...",
+    "rationale": "..."
+  }
+}`;
+
+      const res = await fetch('/api/gemini/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          systemInstruction: 'You are an expert South African CAPS and IEB curriculum planner specializing in ATP and APA weekly lesson sequencing.',
+          jsonMode: true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to generate weekly sequence');
+      }
+      
+      let parsed;
+      try {
+        let cleanText = data.text.trim();
+        if (cleanText.startsWith('```json')) {
+          cleanText = cleanText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        } else if (cleanText.startsWith('```')) {
+          cleanText = cleanText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        }
+        parsed = JSON.parse(cleanText);
+      } catch (parseErr) {
+        console.error('JSON parse error:', parseErr, data.text);
+        throw new Error('Failed to parse AI weekly plan response.');
+      }
+
+      setWeeklyPlanResult(parsed);
+    } catch (err: any) {
+      console.error('Weekly sequence error:', err);
+      setWeeklyError(err.message || 'Error generating weekly sequence.');
+    } finally {
+      setIsGeneratingWeekly(false);
+    }
+  };
 
   const weekInfo = getAcademicWeekInfo(selectedTerm, selectedWeek, 2026);
   const currentPeriod = detectAcademicPeriod();
@@ -335,6 +408,109 @@ export const LessonPlanner: React.FC<LessonPlannerProps> = ({
             </select>
           </div>
         </div>
+      </div>
+
+      {/* Weekly Lesson Sequencing & AI Auto-Planner (APA Aligned) */}
+      <div className="bg-gradient-to-br from-emerald-950 via-[#182622] to-slate-900 text-white rounded-2xl p-6 border border-emerald-500/30 shadow-md space-y-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
+              <h3 className="text-base font-bold tracking-tight font-serif text-emerald-100">
+                AI Weekly Lesson Sequencing &amp; Auto-Planner (APA Aligned)
+              </h3>
+            </div>
+            <p className="text-xs text-emerald-200/80 mt-0.5">
+              Input the first topic for the week. The AI will automatically sequence all 5 daily lessons (Monday–Friday) and generate a strategic preview for next week's first lesson.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="w-full sm:flex-1">
+            <input
+              type="text"
+              placeholder={`e.g., ${currentATP.capsTopic} (or custom weekly starting topic)...`}
+              value={firstTopicInput}
+              onChange={e => setFirstTopicInput(e.target.value)}
+              className="w-full bg-slate-900/80 border border-emerald-500/40 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            />
+          </div>
+          <button
+            onClick={handleGenerateWeeklySequence}
+            disabled={isGeneratingWeekly}
+            className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>{isGeneratingWeekly ? 'Sequencing Week...' : 'AI Auto-Plan Week & Next Week'}</span>
+          </button>
+        </div>
+
+        {weeklyError && (
+          <div className="p-3 bg-red-950/80 border border-red-500/50 rounded-xl text-xs text-red-200 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{weeklyError}</span>
+          </div>
+        )}
+
+        {weeklyPlanResult && (
+          <div className="space-y-4 pt-3 border-t border-emerald-500/20">
+            <div className="p-3.5 bg-emerald-900/30 rounded-xl border border-emerald-500/30 text-xs text-emerald-100">
+              <strong className="text-amber-300">Weekly Pedagogical Overview (APA):</strong> {weeklyPlanResult.weeklyOverview}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              {Object.entries(weeklyPlanResult.days).map(([dayName, dayData]) => (
+                <div key={dayName} className="bg-slate-900/80 p-3.5 rounded-xl border border-emerald-500/20 space-y-2 flex flex-col justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        {dayName}
+                      </span>
+                      <span className="text-[9px] text-amber-300 font-medium">
+                        {dayData.cognitiveLevel}
+                      </span>
+                    </div>
+                    <h5 className="text-xs font-bold text-white pt-1">{dayData.title}</h5>
+                    <p className="text-[11px] text-slate-300 leading-relaxed line-clamp-3">
+                      {dayData.objective}
+                    </p>
+                  </div>
+                  <div className="text-[10px] text-emerald-200/70 pt-2 border-t border-slate-800">
+                    <strong>Activity:</strong> {dayData.activities}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Next Week First Lesson Preview Card */}
+            <div className="p-4 bg-gradient-to-r from-indigo-950/90 via-slate-900 to-indigo-950/90 rounded-xl border border-indigo-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/30 text-indigo-300 border border-indigo-500/40">
+                    Next Week (Week {selectedWeek + 1}) Preview
+                  </span>
+                  <span className="text-xs font-bold text-white">
+                    First Lesson Topic: {weeklyPlanResult.nextWeekSuggestion.firstLessonTopic}
+                  </span>
+                </div>
+                <p className="text-[11px] text-indigo-200/80">
+                  <strong>Pedagogical Rationale:</strong> {weeklyPlanResult.nextWeekSuggestion.rationale}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedWeek(selectedWeek + 1);
+                  setFirstTopicInput(weeklyPlanResult.nextWeekSuggestion.firstLessonTopic);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all whitespace-nowrap cursor-pointer shadow-sm"
+              >
+                Jump to Week {selectedWeek + 1}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Lesson Banner Card */}
